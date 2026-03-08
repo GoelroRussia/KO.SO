@@ -1,0 +1,14 @@
+<RevitAddIns>
+    <AddIn Type="Application">
+        <Name>SteelBar</Name>
+        <Assembly>SteelBar\SteelBar.dll</Assembly>
+        <AddInId>B8397911-CC5B-421F-8E2D-328FBC2E627F</AddInId>
+        <FullClassName>SteelBar.Application</FullClassName>
+        <VendorId>Development</VendorId>
+        <VendorDescription></VendorDescription>
+    </AddIn>
+    <ManifestSettings>
+        <UseRevitContext>False</UseRevitContext>
+        <ContextName>SteelBar</ContextName>
+    </ManifestSettings>
+</RevitAddIns>
