@@ -11,7 +11,13 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <None Remove="SteelBar.addin" />
+    </ItemGroup>
+
+    <ItemGroup>
         <!-- Revit Platform -->
+        <PackageReference Include="FilterDataGrid" Version="1.2.9" />
+        <PackageReference Include="MahApps.Metro" Version="2.4.11" />
         <PackageReference Include="Nice3point.Revit.Toolkit" Version="$(RevitVersion).*" />
         <PackageReference Include="Nice3point.Revit.Extensions" Version="$(RevitVersion).*" />
         <PackageReference Include="Nice3point.Revit.Api.RevitAPI" Version="$(RevitVersion).*" />
@@ -29,6 +35,7 @@
 
         <!-- Development References -->
         <PackageReference Include="JetBrains.Annotations" Version="2025.2.4" PrivateAssets="all" />
+        <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
     </ItemGroup>
     
     <ItemGroup>

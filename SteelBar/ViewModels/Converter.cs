@@ -4,7 +4,7 @@ using System.Windows.Data;
 
 namespace SteelBar.ViewModels;
 
-public class InverseBooleanConverter : IValueConverter
+public class Converter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
