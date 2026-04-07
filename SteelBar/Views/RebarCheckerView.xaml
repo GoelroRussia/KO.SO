@@ -44,6 +44,15 @@
             <Button Content="UPDATE" Command="{Binding ApplyChangesCommand}" 
                     Width="70" Padding="5" Cursor="Hand" 
                     Background="#2196F3" Foreground="White" FontWeight="Bold" BorderThickness="0"/>
+            <Button Content="ZOOM IN" 
+                    Command="{Binding ZoomInCommand}" 
+                    Width="70" Height="30" Margin="10,0,10,0" 
+                    Background="#2196F3" Foreground="White"/>
+            <Button Content="SELECT" 
+                    Command="{Binding SelectElementsCommand}" 
+                    CommandParameter="{Binding ElementName=RebarDataGrid, Path=SelectedItems}"
+                    Width="70" Height="30" Margin="0,0,10,0" 
+                    Background="#2196F3" Foreground="White"/>
         </StackPanel>
 
         <GroupBox Grid.Row="1" Grid.Column="0" Header="Lọc theo cấu kiện chứa thép" Margin="0,0,10,0" Padding="5">
@@ -61,30 +70,24 @@
         <control:FilterDataGrid Grid.Column="1" Grid.Row="1" 
                                 x:Name="RebarDataGrid"
                                 ItemsSource="{Binding RebarList}" 
+                                SelectedItem="{Binding SelectedRebar, Mode=TwoWay}"
+                                SelectionMode="Extended"
                                 AutoGenerateColumns="False" 
                                 HeadersVisibility="Column"
                                 GridLinesVisibility="All"
                                 ShowStatusBar="True" 
                                 FilterLanguage="English"
-                                ExcludeFields="ShapeGeometry"
-                                Style="{DynamicResource {ComponentResourceKey TypeInTargetAssembly={x:Type control:FilterDataGrid}, ResourceId=FilterDataGridStyle}}">
-            
-            <control:FilterDataGrid.InputBindings>
-                <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding ZoomToRebarCommand}"/>
-            </control:FilterDataGrid.InputBindings>
+                                ExcludeFields="ShapeGeometry" SelectionChanged="RebarDataGrid_SelectionChanged">
             <control:FilterDataGrid.Columns>
-
+                <control:DataGridTextColumn Header="Assembly Name" Binding="{Binding AssemblyName}" Width="150" IsColumnFiltered="True" IsReadOnly="True"/>
                 <control:DataGridTextColumn Header="Element ID" Binding="{Binding ElementId}" Width="100" IsColumnFiltered="True"/>
-
                 <control:DataGridTemplateColumn Header="Shape" Width="90" IsColumnFiltered="False" FieldName="ShapeGeometry">
                     <control:DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Path Data="{Binding ShapeGeometry}" Stretch="Uniform" Width="60" Height="40" Margin="5" Stroke="Blue" StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <Path Data="{Binding ShapeGeometry}" Stretch="Uniform" Width="60" Height="40" Margin="5" Stroke="Red" StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </DataTemplate>
                     </control:DataGridTemplateColumn.CellTemplate>
-                </control:DataGridTemplateColumn>
-
-                <control:DataGridTextColumn Header="Assembly Name" Binding="{Binding AssemblyName}" Width="150" IsColumnFiltered="True" IsReadOnly="True"/>
+                </control:DataGridTemplateColumn>                
                 <control:DataGridTextColumn Header="Parameter Name" Binding="{Binding ParameterName}" Width="120" IsColumnFiltered="True" IsReadOnly="True"/>
                 <control:DataGridTextColumn Header="Value (mm)" 
                                             Binding="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" 

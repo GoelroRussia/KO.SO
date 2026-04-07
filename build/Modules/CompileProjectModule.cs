@@ -39,7 +39,7 @@ public sealed class CompileProjectModule : Module
     {
         await context.DotNet().Build(new DotNetBuildOptions
         {
-            ProjectSolution = Solutions.KO_SO.FullName,
+            ProjectSolution = Solutions.SteelBar.FullName,
             Configuration = configuration,
             Properties =
             [

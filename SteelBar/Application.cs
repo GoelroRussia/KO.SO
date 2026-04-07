@@ -24,9 +24,9 @@ namespace SteelBar
 
         private void CreateRibbon()
         {
-            var panel = Application.CreatePanel("Commands", "SteelBar");
+            var panel = Application.CreatePanel("REBAR", "KO.SO");
 
-            panel.AddPushButton<StartupCommand>("Execute")
+            panel.AddPushButton<StartupCommand>("Check Round Rebar")
                 .SetImage("/SteelBar;component/Resources/Icons/RibbonIcon16.png")
                 .SetLargeImage("/SteelBar;component/Resources/Icons/RibbonIcon32.png");
         }

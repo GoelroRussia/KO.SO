@@ -28,7 +28,7 @@ public partial class RebarCheckerViewModel : ObservableObject
     [ObservableProperty] private double _progressValue;
     [ObservableProperty] private string _progressText = "Sẵn sàng";
     [ObservableProperty] private bool _isBusy;
-    [ObservableProperty] private RebarInfo _selectedRebar;
+    [ObservableProperty] private RebarInfo? _selectedRebar;
 
     public RebarCheckerViewModel(UIDocument uidoc)
     {
@@ -58,7 +58,7 @@ public partial class RebarCheckerViewModel : ObservableObject
         // Đưa vào danh sách hiển thị
         foreach (var cat in categories)
         {
-            HostCategories.Add(new CategorySelection { CategoryName = cat });
+            HostCategories.Add(new CategorySelection { CategoryName = cat! });
         }
     }
 
@@ -139,7 +139,7 @@ public partial class RebarCheckerViewModel : ObservableObject
                         // Vì không dùng Task.Run nên Add thẳng vào ObservableCollection không cần Dispatcher
                         RebarList.Add( new RebarInfo
                         {
-                            ElementId = rebar.Id.IntegerValue,
+                            ElementId = rebar.Id.Value,
                             AssemblyName = asmParam?.AsString() ?? "None",
                             ParameterName = param.Definition.Name,
                             Value = Math.Round(valMm, 2),
@@ -181,7 +181,7 @@ public partial class RebarCheckerViewModel : ObservableObject
 #endif
 
                 Element elem = _doc.GetElement(id);
-                Parameter p = elem?.LookupParameter(info.ParameterName);
+                Parameter? p = elem?.LookupParameter(info.ParameterName);
 
                 if (p != null && !p.IsReadOnly)
                 {
@@ -197,30 +197,65 @@ public partial class RebarCheckerViewModel : ObservableObject
     /// Lệnh nháy đúp chuột để chọn và Zoom màn hình tới thanh thép bị lỗi
     /// </summary>
     [RelayCommand]
-    private void ZoomToRebar()
+    private void ZoomIn()
     {
-        if (SelectedRebar == null) return;
+        // 1. Kiểm tra xem đã chọn dòng nào chưa
+        if (SelectedRebar == null)
+        {
+            TaskDialog.Show("Thông báo", "Vui lòng chọn một thanh thép trên bảng!");
+            return;
+        }
 
-        // Hỗ trợ cả Revit đời mới (ID kiểu Int64) và đời cũ (ID kiểu Int32)
-        var id =
+        // 2. Chạy qua ActionEventHandler
+        _actionEventHandler.Raise(app =>
+        {
+            // Khởi tạo ElementId
 #if REVIT2024_OR_GREATER
-            new ElementId((long)SelectedRebar.ElementId);
+            var elementId = new ElementId(SelectedRebar.ElementId);
 #else
-            new ElementId(SelectedRebar.ElementId);
+        var elementId = new ElementId((int)SelectedRebar.ElementId);
 #endif
 
-        // Chọn đối tượng và hiển thị chính giữa màn hình (Zoom to fit)
-        _uidoc.Selection.SetElementIds(new List<ElementId> { id });
-        _uidoc.ShowElements(id);
+            var doc = app.ActiveUIDocument.Document;
+            var uidoc = app.ActiveUIDocument;
+            var elem = doc.GetElement(elementId);
+
+            if (elem == null) return;
+
+            // --- BƯỚC QUAN TRỌNG: TÌM VÀ CHUYỂN SANG VIEW 3D ---
+            View3D? view3D = doc.ActiveView as View3D;
+
+            // Nếu view hiện tại không phải 3D, tìm một view 3D mặc định
+            if (view3D == null || view3D.IsTemplate)
+            {
+                view3D = new FilteredElementCollector(doc)
+                    .OfClass(typeof(View3D))
+                    .Cast<View3D>()
+                    .FirstOrDefault(v => !v.IsTemplate && v.Name.Contains("{3D}")); // Hoặc bỏ điều kiện Name để lấy View3D bất kỳ
+
+                // Kích hoạt View 3D
+                if (view3D != null)
+                {
+                    uidoc.ActiveView = view3D;
+                }
+            }
+
+            // --- BƯỚC ZOOM VÀ CHỌN ---
+            // Xóa selection cũ và chọn thép mới
+            uidoc.Selection.SetElementIds(new List<ElementId> { elementId });
+
+            // ShowElements sẽ tự động Zoom fit đối tượng vào giữa màn hình
+            uidoc.ShowElements(elementId);
+        });
     }
 
     private System.Windows.Media.Geometry GetRebarShapeGeometry(Rebar rebar)
     {
-        if (rebar == null) return null;
+        if (rebar == null) return null!;
 
         // Lấy đường tâm thực tế của thép (bao gồm cả Hook)
         IList<Curve> curves = rebar.GetCenterlineCurves(false, false, false, MultiplanarOption.IncludeAllMultiplanarCurves, 0);
-        if (curves == null || curves.Count == 0) return null;
+        if (curves == null || curves.Count == 0) return null!;
 
         // Tính toán hệ trục tọa độ 3D để chiếu về 2D
         XYZ normal = XYZ.BasisZ;
@@ -295,7 +330,7 @@ public partial class RebarCheckerViewModel : ObservableObject
                 ElementId id = new ElementId(info.ElementId);
 #endif
                     Element elem = _doc.GetElement(id);
-                    Parameter p = elem?.LookupParameter(info.ParameterName);
+                    Parameter? p = elem?.LookupParameter(info.ParameterName);
 
                     if (p != null && !p.IsReadOnly)
                     {
@@ -344,5 +379,49 @@ public partial class RebarCheckerViewModel : ObservableObject
         {
             Autodesk.Revit.UI.TaskDialog.Show("Thông báo", "Tất cả các thanh thép đã được làm tròn, không có đề xuất nào mới.");
         }
+    }
+    [RelayCommand]
+    private void SelectElements(System.Collections.IList selectedItems)
+    {
+        // Kiểm tra nếu chưa chọn gì trên bảng
+        if (selectedItems == null || selectedItems.Count == 0)
+        {
+            TaskDialog.Show("Thông báo", "Vui lòng chọn ít nhất một thanh thép trên bảng!");
+            return;
+        }
+
+        // Ép kiểu danh sách ngay lập tức
+        var selectedRebars = selectedItems.Cast<RebarInfo>().ToList();
+
+        // Vẫn nên giữ cảnh báo an toàn nếu chọn quá nhiều (tùy ý bạn)
+        if (selectedRebars.Count > 1500)
+        {
+            TaskDialog.Show("Cảnh báo", "Bạn đang chọn quá nhiều đối tượng cùng lúc. Hãy chọn ít hơn để tránh treo Revit!");
+            return;
+        }
+
+        // Gửi lệnh vào Revit
+        _actionEventHandler.Raise(app =>
+        {
+            var uidoc = app.ActiveUIDocument;
+            if (uidoc == null) return;
+
+            var elementIds = new List<ElementId>();
+
+            foreach (var rebarInfo in selectedRebars)
+            {
+#if REVIT2024_OR_GREATER
+                elementIds.Add(new ElementId(rebarInfo.ElementId));
+#else
+            elementIds.Add(new ElementId((int)rebarInfo.ElementId));
+#endif
+            }
+
+            // Thực hiện chọn trên mô hình
+            if (elementIds.Any())
+            {
+                uidoc.Selection.SetElementIds(elementIds);
+            }
+        });
     }
 }
