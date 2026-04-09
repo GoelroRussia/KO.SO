@@ -18,8 +18,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Installer", "install\Instal
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SteelBar", "SteelBar\SteelBar.csproj", "{6A0D2022-8F32-3826-7FAE-230C257B1ADF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Collector", "..\Collector\Collector.csproj", "{21BC7510-C2FC-E2BC-C6CE-C01E400B495A}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug.R24|Any CPU = Debug.R24|Any CPU
@@ -68,22 +66,6 @@ Global
 		{6A0D2022-8F32-3826-7FAE-230C257B1ADF}.Release.R26|Any CPU.Build.0 = Release.R26|Any CPU
 		{6A0D2022-8F32-3826-7FAE-230C257B1ADF}.Release|Any CPU.ActiveCfg = Release.R22|Any CPU
 		{6A0D2022-8F32-3826-7FAE-230C257B1ADF}.Release|Any CPU.Build.0 = Release.R22|Any CPU
-		{21BC7510-C2FC-E2BC-C6CE-C01E400B495A}.Debug.R24|Any CPU.ActiveCfg = Debug.R24|Any CPU
-		{21BC7510-C2FC-E2BC-C6CE-C01E400B495A}.Debug.R24|Any CPU.Build.0 = Debug.R24|Any CPU
-		{21BC7510-C2FC-E2BC-C6CE-C01E400B495A}.Debug.R25|Any CPU.ActiveCfg = Debug.R25|Any CPU
-		{21BC7510-C2FC-E2BC-C6CE-C01E400B495A}.Debug.R25|Any CPU.Build.0 = Debug.R25|Any CPU
-		{21BC7510-C2FC-E2BC-C6CE-C01E400B495A}.Debug.R26|Any CPU.ActiveCfg = Debug.R26|Any CPU
-		{21BC7510-C2FC-E2BC-C6CE-C01E400B495A}.Debug.R26|Any CPU.Build.0 = Debug.R26|Any CPU
-		{21BC7510-C2FC-E2BC-C6CE-C01E400B495A}.Debug|Any CPU.ActiveCfg = Debug.R22|Any CPU
-		{21BC7510-C2FC-E2BC-C6CE-C01E400B495A}.Debug|Any CPU.Build.0 = Debug.R22|Any CPU
-		{21BC7510-C2FC-E2BC-C6CE-C01E400B495A}.Release.R24|Any CPU.ActiveCfg = Release.R24|Any CPU
-		{21BC7510-C2FC-E2BC-C6CE-C01E400B495A}.Release.R24|Any CPU.Build.0 = Release.R24|Any CPU
-		{21BC7510-C2FC-E2BC-C6CE-C01E400B495A}.Release.R25|Any CPU.ActiveCfg = Release.R25|Any CPU
-		{21BC7510-C2FC-E2BC-C6CE-C01E400B495A}.Release.R25|Any CPU.Build.0 = Release.R25|Any CPU
-		{21BC7510-C2FC-E2BC-C6CE-C01E400B495A}.Release.R26|Any CPU.ActiveCfg = Release.R26|Any CPU
-		{21BC7510-C2FC-E2BC-C6CE-C01E400B495A}.Release.R26|Any CPU.Build.0 = Release.R26|Any CPU
-		{21BC7510-C2FC-E2BC-C6CE-C01E400B495A}.Release|Any CPU.ActiveCfg = Release.R22|Any CPU
-		{21BC7510-C2FC-E2BC-C6CE-C01E400B495A}.Release|Any CPU.Build.0 = Release.R22|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:viewModels="clr-namespace:SteelBar.ViewModels"
         xmlns:control="http://filterdatagrid.control.com/2021"
-        Title="Rebar Precision Checker Pro" Height="800" Width="900"
+        Title="Rebar Precision Checker Pro" Height="800" Width="1300"
         WindowStartupLocation="CenterScreen" Background="#F5F5F5">
 
     <Window.Resources>
@@ -34,11 +34,11 @@
             <Button Content="CHECK" 
                     Command="{Binding CheckRebarsCommand}" 
                     IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}"
-                    Padding="15,5" Margin="20,0" Background="#2196F3" Foreground="White" FontWeight="Bold" Cursor="Hand"/>
+                    Padding="15,5" Margin="10,0" Background="#2196F3" Foreground="White" FontWeight="Bold" Cursor="Hand"/>
             <Button Content="AUTO ROUNDING" 
                     Command="{Binding AutoRoundRebarsCommand}" 
                     CommandParameter="{Binding Items, ElementName=RebarDataGrid}" 
-                    Width="150" Padding="5" Margin="0,0,10,0" Cursor="Hand" 
+                    Width="120" Padding="5" Margin="0,0,10,0" Cursor="Hand" 
                     Background="#FF9800" Foreground="White" FontWeight="Bold" BorderThickness="0"
                     ToolTip="Đề xuất số làm tròn cho các thanh thép ĐANG HIỂN THỊ trên bảng"/>
             <Button Content="UPDATE" Command="{Binding ApplyChangesCommand}" 
@@ -50,7 +50,6 @@
                     Background="#2196F3" Foreground="White"/>
             <Button Content="SELECT" 
                     Command="{Binding SelectElementsCommand}" 
-                    CommandParameter="{Binding ElementName=RebarDataGrid, Path=SelectedItems}"
                     Width="70" Height="30" Margin="0,0,10,0" 
                     Background="#2196F3" Foreground="White"/>
         </StackPanel>
@@ -70,25 +69,36 @@
         <control:FilterDataGrid Grid.Column="1" Grid.Row="1" 
                                 x:Name="RebarDataGrid"
                                 ItemsSource="{Binding RebarList}" 
-                                SelectedItem="{Binding SelectedRebar, Mode=TwoWay}"
                                 SelectionMode="Extended"
                                 AutoGenerateColumns="False" 
                                 HeadersVisibility="Column"
                                 GridLinesVisibility="All"
                                 ShowStatusBar="True" 
                                 FilterLanguage="English"
-                                ExcludeFields="ShapeGeometry" SelectionChanged="RebarDataGrid_SelectionChanged">
+                                ExcludeFields="ShapeGeometry">
+            <control:FilterDataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                </Style>
+            </control:FilterDataGrid.RowStyle>
             <control:FilterDataGrid.Columns>
-                <control:DataGridTextColumn Header="Assembly Name" Binding="{Binding AssemblyName}" Width="150" IsColumnFiltered="True" IsReadOnly="True"/>
-                <control:DataGridTextColumn Header="Element ID" Binding="{Binding ElementId}" Width="100" IsColumnFiltered="True"/>
-                <control:DataGridTemplateColumn Header="Shape" Width="90" IsColumnFiltered="False" FieldName="ShapeGeometry">
+                <control:DataGridTextColumn Header="Assembly Name" Binding="{Binding AssemblyName}" Width="220" IsColumnFiltered="True" IsReadOnly="True"/>
+                <control:DataGridTextColumn Header="Element ID" Binding="{Binding ElementId}" Width="150" IsColumnFiltered="True"/>
+
+                <control:DataGridTemplateColumn Header="Shape" Width="350" IsColumnFiltered="False">
                     <control:DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Path Data="{Binding ShapeGeometry}" Stretch="Uniform" Width="60" Height="40" Margin="5" Stroke="Red" StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <Image Source="{Binding ShapeImage}" 
+                   Stretch="Uniform" 
+                   Width="500" Height="220"
+                   Margin="5" 
+                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </DataTemplate>
                     </control:DataGridTemplateColumn.CellTemplate>
-                </control:DataGridTemplateColumn>                
-                <control:DataGridTextColumn Header="Parameter Name" Binding="{Binding ParameterName}" Width="120" IsColumnFiltered="True" IsReadOnly="True"/>
+                </control:DataGridTemplateColumn>
+
+                
+                <control:DataGridTextColumn Header="Parameter Name" Binding="{Binding ParameterName}" Width="170" IsColumnFiltered="True" IsReadOnly="True"/>
                 <control:DataGridTextColumn Header="Value (mm)" 
                                             Binding="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" 
                                             Width="*" 
