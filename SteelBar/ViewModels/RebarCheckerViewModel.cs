@@ -224,8 +224,6 @@ public partial class RebarCheckerViewModel : ObservableObject
 
             // --- BƯỚC QUAN TRỌNG: TÌM VÀ CHUYỂN SANG VIEW 3D ---
             View3D? view3D = doc.ActiveView as View3D;
-
-            // Nếu view hiện tại không phải 3D, tìm một view 3D mặc định
             if (view3D == null || view3D.IsTemplate)
             {
                 view3D = new FilteredElementCollector(doc)
