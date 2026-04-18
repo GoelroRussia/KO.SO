@@ -1,8 +1,11 @@
 using Autodesk.Revit.DB.Structure;
 using Autodesk.Revit.UI;
+using Nice3point.Revit.Extensions.Runtime;
 using Nice3point.Revit.Toolkit.External.Handlers;
 using Serilog;
 using SteelBar.Models;
+using SteelBar.Utils;
+using System.Collections;
 using System.Collections.ObjectModel;
 using System.Runtime.InteropServices;
 using System.Windows.Data;
@@ -17,18 +20,21 @@ public partial class RebarCheckerViewModel : ObservableObject
     private List<Rebar> _allRebars = new();
     [DllImport("gdi32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
+
+
     private static extern bool DeleteObject(IntPtr hObject);
     // --- CÁC THUỘC TÍNH BINDING VỚI GIAO DIỆN XAML ---
     [ObservableProperty] private double _roundingStep = 10.0;
     [ObservableProperty] private ObservableCollection<RebarInfo> _rebarList = new();
     [ObservableProperty] private ObservableCollection<CategorySelection> _hostCategories = new();
-
     [ObservableProperty] private int _totalRebars;
     [ObservableProperty] private int _totalAssemblies;
     [ObservableProperty] private double _progressValue;
     [ObservableProperty] private string _progressText = "Sẵn sàng";
     [ObservableProperty] private bool _isBusy;
-    [ObservableProperty] private RebarInfo? _selectedRebar;
+    [ObservableProperty] private int _selectedItemsForDeletion;
+    [ObservableProperty] private IList _selectedRebar;
+
 
     public RebarCheckerViewModel(UIDocument uidoc)
     {
@@ -137,7 +143,7 @@ public partial class RebarCheckerViewModel : ObservableObject
                         var asmParam = rebar.LookupParameter("Assembly Name");
 
                         // Vì không dùng Task.Run nên Add thẳng vào ObservableCollection không cần Dispatcher
-                        RebarList.Add( new RebarInfo
+                        RebarList.Add(new RebarInfo
                         {
 #if REVIT2024_OR_GREATER
                             ElementId = rebar.Id.Value,
@@ -205,9 +211,17 @@ public partial class RebarCheckerViewModel : ObservableObject
     private void ZoomIn() // Không cần tham số nữa
     {
         // Lấy tất cả các thanh thép đang được bôi đen
-        var selectedRebars = RebarList.Where(x => x.IsSelected).ToList();
+        // Kiểm tra xem người dùng đã chọn gì trên DataGrid chưa
+        if (SelectedRebar == null || SelectedRebar.Count == 0)
+        {
+            TaskDialog.Show("Thông báo", "Vui lòng chọn ít nhất một thanh thép trên bảng!");
+            return;
+        }
 
-        if (selectedRebars.Count == 0)
+        // Ép kiểu (Cast) từ IList sang danh sách RebarInfo
+        var danhSachCanChon = SelectedRebar.Cast<RebarInfo>().ToList();
+
+        if (danhSachCanChon.Count == 0)
         {
             TaskDialog.Show("Thông báo", "Vui lòng chọn ít nhất một thanh thép!");
             return;
@@ -236,7 +250,7 @@ public partial class RebarCheckerViewModel : ObservableObject
             }
 
             var elementIds = new List<ElementId>();
-            foreach (var rebarInfo in selectedRebars)
+            foreach (var rebarInfo in danhSachCanChon)
             {
 #if REVIT2024_OR_GREATER
                 elementIds.Add(new ElementId(rebarInfo.ElementId));
@@ -384,23 +398,25 @@ public partial class RebarCheckerViewModel : ObservableObject
         }
     }
     [RelayCommand]
-    private void SelectElements() // Không cần tham số nữa
+    private void SelectElements()
     {
-        // Lấy tất cả các thanh thép đang được đánh dấu IsSelected = true
-        var selectedRebars = RebarList.Where(x => x.IsSelected).ToList();
-
-        if (selectedRebars.Count == 0)
+        // Kiểm tra xem người dùng đã chọn gì trên DataGrid chưa
+        if (SelectedRebar == null || SelectedRebar.Count == 0)
         {
             TaskDialog.Show("Thông báo", "Vui lòng chọn ít nhất một thanh thép trên bảng!");
             return;
         }
 
-        if (selectedRebars.Count > 1500)
+        // Ép kiểu (Cast) từ IList sang danh sách RebarInfo
+        var danhSachCanChon = SelectedRebar.Cast<RebarInfo>().ToList();
+
+        if (danhSachCanChon.Count > 1500)
         {
-            TaskDialog.Show("Cảnh báo", "Bạn đang chọn quá nhiều đối tượng cùng lúc!");
+            TaskDialog.Show("Cảnh báo", "Bạn đang chọn quá nhiều đối tượng cùng lúc! Revit có thể bị treo.");
             return;
         }
 
+        // Đẩy lệnh tương tác vào Revit API context thông qua ActionEventHandler (Nice3point template)
         _actionEventHandler.Raise(app =>
         {
             var uidoc = app.ActiveUIDocument;
@@ -408,19 +424,22 @@ public partial class RebarCheckerViewModel : ObservableObject
 
             var elementIds = new List<ElementId>();
 
-            foreach (var rebarInfo in selectedRebars)
+            // Convert sang ElementId (hỗ trợ version Revit như Building Coder thường nhắc)
+            foreach (var rebarInfo in danhSachCanChon)
             {
 #if REVIT2024_OR_GREATER
                 elementIds.Add(new ElementId(rebarInfo.ElementId));
 #else
-            elementIds.Add(new ElementId((int)rebarInfo.ElementId));
+                // Các bản Revit cũ sử dụng kiểu int
+                elementIds.Add(new ElementId((int)rebarInfo.ElementId));
 #endif
             }
 
-            if (elementIds.Any())
-            {
-                uidoc.Selection.SetElementIds(elementIds);
-            }
+            // Thực hiện highlight/chọn các đối tượng trong mô hình Revit
+            uidoc.Selection.SetElementIds(elementIds);
+
+            // (Tùy chọn bổ sung) Phóng to/đưa view về các thanh thép vừa chọn để user dễ thấy
+            uidoc.ShowElements(elementIds);
         });
     }
 }

@@ -14,7 +14,8 @@ public partial class RebarInfo : ObservableObject
     public Geometry? ShapeGeometry { get; set; }
     public double OriginalValue { get; set; }
     [ObservableProperty] private ImageSource? _shapeImage;
-    [ObservableProperty] private bool _isSelected;
+    [ObservableProperty] private bool _isCoverFailed;
+    [ObservableProperty] private string _coverStatus = "Chưa kiểm tra";
 }
 
 public partial class CategorySelection : ObservableObject
