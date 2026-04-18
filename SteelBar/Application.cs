@@ -28,7 +28,7 @@ namespace SteelBar
         private void CreateRibbon()
         {
 
-            var panel = Application.CreatePanel("REBAR", "KO.SO");
+            var panel = Application.CreatePanel("ReBar", "KO.SO");
             var stackPanel = panel.AddStackPanel();
             stackPanel.AddPushButton<StartupCommand>("Check Round Rebar")
                 .SetImage("/SteelBar;component/Resources/Icons/RibbonIcon16.png")
@@ -42,10 +42,10 @@ namespace SteelBar
             var panel1 = Application.CreatePanel("Template", "KO.SO");
             var stackPanel1 = panel1.AddStackPanel();
             stackPanel1.AddPushButton<CopyStateCommand>("Copy View State")
-                .SetImage("/SteelBar;component/Resources/Icons/CopyStateIcon16.png")
+                .SetImage("/SteelBar;component/Resources/Icons/RibbonIcon16.png")
                 .SetLargeImage("/SteelBar;component/Resources/Icons/RibbonIcon32.png");
             stackPanel1.AddPushButton<PasteStateCommand>("Paste View State")
-                .SetImage("/SteelBar;component/Resources/Icons/CopyStateIcon16.png")
+                .SetImage("/SteelBar;component/Resources/Icons/RibbonIcon16.png")
                 .SetLargeImage("/SteelBar;component/Resources/Icons/RibbonIcon32.png");
             stackPanel1.AddComboBox();
         }

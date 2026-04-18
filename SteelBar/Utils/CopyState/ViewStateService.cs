@@ -5,10 +5,12 @@ namespace SteelBar.Utils.CopyState
 {
     public class ViewStateService
     {
+
         public ViewStateData CaptureState(View sourceView, bool copyVg, bool copySectionBox, bool copyCrop, bool copyFilters)
         {
             var state = new ViewStateData();
             var doc = sourceView.Document;
+            state.SourceDocument = doc;
 
             // 1. Visibility Graphics
             if (copyVg)
@@ -16,17 +18,18 @@ namespace SteelBar.Utils.CopyState
                 state.HasVisGraphics = true;
                 foreach (Category cat in doc.Settings.Categories)
                 {
-                    try
-                    {
-                        if (sourceView.GetCategoryHidden(cat.Id))
-                            state.CategoryVisibility[cat.Id] = false;
+                    if (!sourceView.CanCategoryBeHidden(cat.Id)) continue;
 
-                        var overrideSettings = sourceView.GetCategoryOverrides(cat.Id);
-                        // Chỉ lưu nếu có override thực sự để tiết kiệm bộ nhớ
-                        /* Logic kiểm tra override mặc định có thể thêm ở đây */
-                        state.CategoryOverrides[cat.Id] = overrideSettings;
-                    }
-                    catch { /* Bỏ qua category không hỗ trợ view override */ }
+                    // Chỉ bắt các Category mặc định của hệ thống (BuiltInCategory luôn có giá trị < 0)
+                    if (cat.Id.IntegerValue > 0) continue;
+
+                    var builtInCat = (BuiltInCategory)cat.Id.IntegerValue;
+
+                    if (sourceView.GetCategoryHidden(cat.Id))
+                        state.CategoryVisibility[builtInCat] = false;
+
+                    var overrideSettings = sourceView.GetCategoryOverrides(cat.Id);
+                    state.CategoryOverrides[builtInCat] = overrideSettings;
                 }
             }
 
@@ -57,9 +60,15 @@ namespace SteelBar.Utils.CopyState
                 var filters = sourceView.GetFilters();
                 foreach (var filterId in filters)
                 {
-                    state.ActiveFilters.Add(filterId);
-                    state.FilterOverrides[filterId] = sourceView.GetFilterOverrides(filterId);
-                    state.FilterVisibility[filterId] = sourceView.GetFilterVisibility(filterId);
+                    // Lấy Element từ Document để đọc được cái Tên (Name) của Filter
+                    if (doc.GetElement(filterId) is ParameterFilterElement filterElem)
+                    {
+                        string filterName = filterElem.Name;
+                        state.ActiveFilters.Add(filterName);
+                        state.SourceFilterIds.Add(filterId);
+                        state.FilterOverrides[filterName] = sourceView.GetFilterOverrides(filterId);
+                        state.FilterVisibility[filterName] = sourceView.GetFilterVisibility(filterId);
+                    }
                 }
             }
 
@@ -68,17 +77,27 @@ namespace SteelBar.Utils.CopyState
 
         public void ApplyState(View? targetView, ViewStateData state)
         {
+            var targetDoc = targetView!.Document;
+
+            // 1. Visibility Graphics
             if (state.HasVisGraphics)
             {
                 foreach (var kvp in state.CategoryOverrides)
                 {
-                    if (targetView!.CanCategoryBeHidden(kvp.Key))
-                        targetView.SetCategoryOverrides(kvp.Key, kvp.Value);
+                    var catId = new ElementId((int)kvp.Key);
+                    // Kiểm tra xem Category này có tồn tại và hỗ trợ ẩn/hiện trong View đích không
+                    if (Category.GetCategory(targetDoc, kvp.Key) != null && targetView.CanCategoryBeHidden(catId))
+                    {
+                        targetView.SetCategoryOverrides(catId, kvp.Value);
+                    }
                 }
                 foreach (var kvp in state.CategoryVisibility)
                 {
-                    if (targetView!.CanCategoryBeHidden(kvp.Key))
-                        targetView.SetCategoryHidden(kvp.Key, !kvp.Value);
+                    var catId = new ElementId((int)kvp.Key);
+                    if (Category.GetCategory(targetDoc, kvp.Key) != null && targetView.CanCategoryBeHidden(catId))
+                    {
+                        targetView.SetCategoryHidden(catId, !kvp.Value);
+                    }
                 }
             }
 
@@ -103,66 +122,84 @@ namespace SteelBar.Utils.CopyState
             // --- LOGIC XỬ LÝ FILTER & VIEW TEMPLATE ---
             if (state.HasFilters)
             {
-                // 1. Xác định View đích thực sự (View hiện tại hay View Template?)
-                View viewToApply = targetView!;
-                bool isControlledByTemplate = false;
+                // 4.1. Lấy danh sách Filter đang có ở file đích
+                var targetDocFilters = new FilteredElementCollector(targetDoc)
+                    .OfClass(typeof(ParameterFilterElement))
+                    .Cast<ParameterFilterElement>()
+                    .ToDictionary(f => f.Name, f => f.Id);
 
-                // Kiểm tra xem View có đang gán Template không
-                if (targetView!.ViewTemplateId != ElementId.InvalidElementId)
+                // 4.2. TÌM VÀ COPY NHỮNG FILTER CÒN THIẾU TỪ FILE GỐC SANG FILE ĐÍCH
+                // (Điều kiện: File gốc vẫn đang được mở trong Revit - IsValidObject)
+                if (state.SourceDocument != null && state.SourceDocument.IsValidObject && state.SourceFilterIds.Any())
                 {
-                    // Lấy đối tượng View Template
-                    View templateView = (targetView.Document.GetElement(targetView.ViewTemplateId) as View)!;
+                    var missingFilterIds = new List<ElementId>();
 
+                    foreach (var sourceFilterId in state.SourceFilterIds)
                     {
-                        // Kiểm tra xem View con có bị khóa Filter bởi Template không?
-                        targetView.GetNonControlledTemplateParameterIds();
-                        viewToApply = templateView;
-                        isControlledByTemplate = true;
-                    }
-                }
-
-                // 2. Thực hiện Xóa cũ - Thêm mới trên View đã xác định (viewToApply)
-
-                // Mở try-catch để an toàn
-                try
-                {
-                    // BƯỚC A: Xóa các Filter cũ đang tồn tại trên viewToApply
-                    var existingFilters = viewToApply.GetFilters();
-                    foreach (var existingId in existingFilters)
-                    {
-                        viewToApply.RemoveFilter(existingId);
-                    }
-
-                    // BƯỚC B: Thêm các Filter mới từ Clipboard (state)
-                    foreach (var filterId in state.ActiveFilters)
-                    {
-                        if (!viewToApply.IsFilterApplied(filterId))
+                        if (state.SourceDocument.GetElement(sourceFilterId) is ParameterFilterElement sourceFilter)
                         {
-                            viewToApply.AddFilter(filterId);
-
-                            // Khôi phục Override (Màu sắc, nét...)
-                            if (state.FilterOverrides.ContainsKey(filterId))
+                            // Nếu file đích chưa có Filter này (so sánh theo Tên)
+                            if (!targetDocFilters.ContainsKey(sourceFilter.Name))
                             {
-                                viewToApply.SetFilterOverrides(filterId, state.FilterOverrides[filterId]);
-                            }
-
-                            // Khôi phục Visibility (Ẩn/Hiện)
-                            if (state.FilterVisibility.ContainsKey(filterId))
-                            {
-                                viewToApply.SetFilterVisibility(filterId, state.FilterVisibility[filterId]);
+                                missingFilterIds.Add(sourceFilterId);
                             }
                         }
                     }
 
-                    // (Tùy chọn) Thông báo nhỏ nếu đã paste vào Template
-                    if (isControlledByTemplate)
+                    // Dùng API của Revit để copy hàng loạt Filter bị thiếu sang file đích
+                    if (missingFilterIds.Any())
                     {
-                        // Debug.WriteLine("Đã Paste vào View Template thay vì View hiện tại.");
+                        try
+                        {
+                            ElementTransformUtils.CopyElements(
+                                state.SourceDocument,
+                                missingFilterIds,
+                                targetDoc,
+                                Transform.Identity,
+                                new CopyPasteOptions()
+                            );
+
+                            // Sau khi Copy xong, phải lấy lại danh sách Filter ở file đích để cập nhật ID mới
+                            targetDocFilters = new FilteredElementCollector(targetDoc)
+                                .OfClass(typeof(ParameterFilterElement))
+                                .Cast<ParameterFilterElement>()
+                                .ToDictionary(f => f.Name, f => f.Id);
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"Không thể copy filter từ file gốc: {ex.Message}");
+                        }
                     }
                 }
-                catch (Exception)
+
+                // 4.3. TIẾN HÀNH APPLY CÁC FILTER VÀO VIEW
+                try
                 {
-                    // Xử lý lỗi (ví dụ: filter không hợp lệ với loại view này)
+                    // Xóa filter cũ trên View
+                    foreach (var oldId in targetView.GetFilters())
+                    {
+                        targetView.RemoveFilter(oldId);
+                    }
+
+                    // Áp dụng filter từ bộ nhớ dựa trên mapping tên
+                    foreach (var filterName in state.ActiveFilters)
+                    {
+                        // Lúc này targetDocFilters chắc chắn đã có đủ Filter (kể cả những cái vừa được copy sang)
+                        if (targetDocFilters.TryGetValue(filterName, out ElementId newFilterId))
+                        {
+                            targetView.AddFilter(newFilterId);
+
+                            if (state.FilterOverrides.ContainsKey(filterName))
+                                targetView.SetFilterOverrides(newFilterId, state.FilterOverrides[filterName]);
+
+                            if (state.FilterVisibility.ContainsKey(filterName))
+                                targetView.SetFilterVisibility(newFilterId, state.FilterVisibility[filterName]);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Lỗi apply filter vào view: {ex.Message}");
                 }
             }
         }
