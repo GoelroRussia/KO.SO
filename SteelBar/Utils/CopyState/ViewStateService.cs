@@ -21,9 +21,9 @@ namespace SteelBar.Utils.CopyState
                     if (!sourceView.CanCategoryBeHidden(cat.Id)) continue;
 
                     // Chỉ bắt các Category mặc định của hệ thống (BuiltInCategory luôn có giá trị < 0)
-                    if (cat.Id.IntegerValue > 0) continue;
+                    if (cat.Id.Value > 0) continue;
 
-                    var builtInCat = (BuiltInCategory)cat.Id.IntegerValue;
+                    var builtInCat = (BuiltInCategory)cat.Id.Value;
 
                     if (sourceView.GetCategoryHidden(cat.Id))
                         state.CategoryVisibility[builtInCat] = false;
@@ -84,7 +84,7 @@ namespace SteelBar.Utils.CopyState
             {
                 foreach (var kvp in state.CategoryOverrides)
                 {
-                    var catId = new ElementId((int)kvp.Key);
+                    var catId = new ElementId((long)kvp.Key);
                     // Kiểm tra xem Category này có tồn tại và hỗ trợ ẩn/hiện trong View đích không
                     if (Category.GetCategory(targetDoc, kvp.Key) != null && targetView.CanCategoryBeHidden(catId))
                     {
@@ -93,7 +93,7 @@ namespace SteelBar.Utils.CopyState
                 }
                 foreach (var kvp in state.CategoryVisibility)
                 {
-                    var catId = new ElementId((int)kvp.Key);
+                    var catId = new ElementId((long)kvp.Key);
                     if (Category.GetCategory(targetDoc, kvp.Key) != null && targetView.CanCategoryBeHidden(catId))
                     {
                         targetView.SetCategoryHidden(catId, !kvp.Value);

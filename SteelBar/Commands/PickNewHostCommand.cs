@@ -16,15 +16,15 @@ namespace SteelBar.Commands
             try
             {
                 // B1. Yêu cầu người dùng Pick vào 1 Assembly
-                Reference assemblyRef = UiDocument.Selection.PickObject(
+                Reference assemblyRef = Application.ActiveUIDocument.Selection.PickObject(
                     ObjectType.Element,
                     new AssemblySelectionFilter(),
                     "Vui lòng chọn 1 Assembly chứa cốt thép");
 
-                AssemblyInstance assembly = Document.GetElement(assemblyRef) as AssemblyInstance;
+                AssemblyInstance? assembly = Application.ActiveUIDocument.Document.GetElement(assemblyRef) as AssemblyInstance;
 
                 // Lấy toàn bộ thép trong Assembly
-                var rebars = RebarHelper.GetRebarsInAssembly(Document, assembly);
+                List<Rebar> rebars = RebarHelper.GetRebarsInAssembly(Application.ActiveUIDocument.Document, assembly);
 
                 if (rebars.Count == 0)
                 {
@@ -33,15 +33,15 @@ namespace SteelBar.Commands
                 }
 
                 // B2. Yêu cầu người dùng Pick Host mới (Dầm, Cột, Sàn...)
-                Reference hostRef = UiDocument.Selection.PickObject(
+                Reference hostRef = Application.ActiveUIDocument.Selection.PickObject(
                     ObjectType.Element,
                     new RebarHostSelectionFilter(),
                     $"Chọn đối tượng Host mới cho {rebars.Count} thanh thép");
 
-                Element newHost = Document.GetElement(hostRef);
+                Element newHost = Application.ActiveUIDocument.Document.GetElement(hostRef);
 
                 // Thực thi đổi Host
-                RebarHelper.ChangeRebarsHost(Document, rebars, newHost);
+                RebarHelper.ChangeRebarsHost(Application.ActiveUIDocument.Document, rebars, newHost);
 
                 TaskDialog.Show("Thành công", $"Đã gán thành công {rebars.Count} thanh thép vào host mới: {newHost.Name}");
             }

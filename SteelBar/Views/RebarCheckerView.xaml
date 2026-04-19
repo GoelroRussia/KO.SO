@@ -104,11 +104,12 @@
 
             <DataGrid.Columns>
 
-                <DataGridTextColumn Header="Assembly Name" Binding="{Binding AssemblyName}" Width="220" IsReadOnly="True"/>
+                <DataGridTextColumn Header="Assembly Name" Binding="{Binding AssemblyName}" Width="160" IsReadOnly="True"/>
+                <DataGridTextColumn Header="REBAR TYPE" Binding="{Binding REBAR_TYPE}" Width="150" IsReadOnly="True"/>
 
-                <DataGridTextColumn Header="Element ID" Binding="{Binding ElementId}" Width="150" />
+                <DataGridTextColumn Header="Element ID" Binding="{Binding ElementId}" Width="100" />
 
-                <DataGridTemplateColumn Header="Shape" Width="350">
+                <DataGridTemplateColumn Header="Shape" Width="220">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <Image Source="{Binding ShapeImage}" 
@@ -120,11 +121,11 @@
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
 
-                <DataGridTextColumn Header="Parameter Name" Binding="{Binding ParameterName}" Width="170" IsReadOnly="True"/>
+                <DataGridTextColumn Header="Parameter Name" Binding="{Binding ParameterName}" Width="120" IsReadOnly="True"/>
 
                 <DataGridTextColumn Header="Value (mm)" 
                             Binding="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" 
-                            Width="*" 
+                            Width="120" 
                             IsReadOnly="False"/>
 
                 <DataGridTextColumn Header="Cover Status" 

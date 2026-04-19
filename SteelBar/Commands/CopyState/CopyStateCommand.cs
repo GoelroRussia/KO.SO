@@ -15,7 +15,7 @@ namespace SteelBar.Commands.CopyState
         public override void Execute()
         {
             CopyStateView copyStateView = null!;
-            var copyStateViewModel = new CopyStateViewModel(Context.ActiveView!, () => copyStateView?.Close());
+            var copyStateViewModel = new CopyStateViewModel(Application.ActiveUIDocument.ActiveView!, () => copyStateView?.Close());
             copyStateView = new CopyStateView(copyStateViewModel);
             copyStateView.ShowDialog();
         }

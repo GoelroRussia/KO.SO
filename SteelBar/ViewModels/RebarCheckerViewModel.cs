@@ -138,7 +138,7 @@ public partial class RebarCheckerViewModel : ObservableObject
                     double roundedValue = Math.Round(valMm / RoundingStep) * RoundingStep;
 
                     // Nếu giá trị thực tế lệch với giá trị làm tròn (dung sai 0.001mm) -> Bắt lỗi
-                    if (Math.Abs(valMm - roundedValue) > 0.1)
+                    if (Math.Abs(valMm - roundedValue) > 0.01)
                     {
                         var asmParam = rebar.LookupParameter("Assembly Name");
 
@@ -152,6 +152,7 @@ public partial class RebarCheckerViewModel : ObservableObject
 #endif
                             AssemblyName = asmParam?.AsString() ?? "None",
                             ParameterName = param.Definition.Name,
+                            REBAR_TYPE = rebar.LookupParameter("REBAR_TYPE")?.AsString() ?? "None",
                             Value = Math.Round(valMm, 2),
                             OriginalValue = Math.Round(valMm, 2),
                             //ShapeGeometry = GetRebarShapeGeometry(rebar)

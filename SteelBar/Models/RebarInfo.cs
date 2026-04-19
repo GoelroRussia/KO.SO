@@ -8,6 +8,7 @@ public partial class RebarInfo : ObservableObject
 {
     public long ElementId { get; set; }
     public string? AssemblyName { get; set; }
+    public string? REBAR_TYPE { get; set; }
     public string? ParameterName { get; set; }
 
     [ObservableProperty] private double _value;

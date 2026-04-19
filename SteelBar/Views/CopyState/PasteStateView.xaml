@@ -1,0 +1,49 @@
+﻿<Window x:Class="SteelBar.Views.CopyState.PasteStateView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Batch Paste View State" Height="500" Width="450"
+        WindowStartupLocation="CenterScreen">
+
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+            <Button Content="Select All" Command="{Binding CheckAllCommand}" Width="80" Margin="0,0,10,0"/>
+            <Button Content="Select None" Command="{Binding UncheckAllCommand}" Width="80"/>
+        </StackPanel>
+
+        <Grid Grid.Row="1" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="Search: " VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,5,0"/>
+            <TextBox Grid.Column="1" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
+                     Height="24" VerticalContentAlignment="Center" Padding="5,0"/>
+        </Grid>
+
+        <ListBox Grid.Row="2" ItemsSource="{Binding FilteredViews}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <CheckBox IsChecked="{Binding IsSelected}" Margin="2">
+                        <TextBlock>
+                            <Run Text="{Binding Name , Mode=OneWay}" FontWeight="Bold" Foreground="#2A5C8A"/>
+                            <Run Text=" - "/>
+                            <Run Text="{Binding ViewType, Mode=OneWay}" FontStyle="Italic" Foreground="Gray"/>
+                        </TextBlock>
+                    </CheckBox>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+            <Button Content="Cancel" Command="{Binding CloseCommand}" Width="90" Height="30" Margin="0,0,10,0"/>
+            <Button Content="Paste State" Command="{Binding PasteCommand}" Width="100" Height="30" IsDefault="True" Background="#007ACC" Foreground="White"/>
+        </StackPanel>
+    </Grid>
+</Window>

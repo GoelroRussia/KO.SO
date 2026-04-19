@@ -3,9 +3,9 @@ using System.Windows;
 
 namespace SteelBar.Views.CopyState
 {
-    public sealed partial class CopyStateView
+    public sealed partial class PasteStateView
     {
-        public CopyStateView(CopyStateViewModel viewModel)
+        public PasteStateView(PasteStateViewModel viewModel)
         {
             InitializeComponent();
             DataContext = viewModel;
