@@ -3,11 +3,75 @@
 		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 		xmlns:viewModels="clr-namespace:SteelBar.ViewModels"
 		xmlns:control="http://filterdatagrid.control.com/2021"
-		Title="Rebar Precision Checker Pro" Height="800" Width="1300"
+		Title="Rebar Precision Checker Pro" Height="800" Width="1200"
 		WindowStartupLocation="CenterScreen" Background="#F5F5F5">
+    <Window.Resources>
+        <Style x:Key="CenterText" TargetType="TextBlock">
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style TargetType="DataGrid">
+            <Setter Property="AutoGenerateColumns" Value="False"/>
+            <Setter Property="CanUserAddRows" Value="False"/>
+            <Setter Property="SelectionUnit" Value="Cell"/>
+            <Setter Property="GridLinesVisibility" Value="All"/>
+            <Setter Property="HorizontalGridLinesBrush" Value="#DDDDDD"/>
+            <Setter Property="VerticalGridLinesBrush" Value="#DDDDDD"/>
+            <Setter Property="RowHeight" Value="180"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="Black"/>
+            <Setter Property="AlternationCount" Value="2"/>
+            <Setter Property="AlternatingRowBackground" Value="#EBEBEB"/>
+        </Style>
+        <Style x:Key="ExcelFilterHeaderStyle" TargetType="DataGridColumnHeader">
+            <Setter Property="ContentTemplate">
+                <Setter.Value>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal" Margin="4">
+                            <TextBlock Text="{Binding}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+
+                            <ToggleButton x:Name="FilterBtn" Content="▼" Width="20" Height="20" 
+                                      Background="Transparent" BorderBrush="Transparent" Cursor="Hand"
+                                      Tag="{Binding Column.SortMemberPath, RelativeSource={RelativeSource AncestorType=DataGridColumnHeader}}"
+                                      Checked="FilterBtn_Checked"/>
+
+                            <Popup IsOpen="{Binding IsChecked, ElementName=FilterBtn}" 
+                               StaysOpen="False" PlacementTarget="{Binding ElementName=FilterBtn}"
+                               Closed="FilterPopup_Closed">
+
+                                <Border Background="White" BorderBrush="Gray" BorderThickness="1" Padding="5" MaxHeight="300" MinWidth="180">
+                                    <DockPanel>
+
+                                        <CheckBox x:Name="SelectAllCb" Content="(Chọn tất cả)" 
+                                              DockPanel.Dock="Top" Margin="5,5,5,10" FontWeight="Bold"
+                                              IsChecked="True" Click="SelectAll_Click"
+                                              Tag="{Binding Column.SortMemberPath, RelativeSource={RelativeSource AncestorType=DataGridColumnHeader}}"/>
+
+                                        <Border DockPanel.Dock="Top" Height="1" Background="#DDDDDD" Margin="0,0,0,5"/>
+
+                                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                            <ItemsControl x:Name="FilterItemsControl">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <CheckBox Content="{Binding Value}" 
+                                                              IsChecked="{Binding IsSelected}" 
+                                                              Margin="5,4" Cursor="Hand"/>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </ScrollViewer>
+
+                                    </DockPanel>
+                                </Border>
+                            </Popup>
+                        </StackPanel>
+                    </DataTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
 
 
-    
     <Grid Margin="15" Height="700">
 
         <Grid.RowDefinitions>
@@ -101,15 +165,23 @@
                 HeadersVisibility="Column"
                 SelectionChanged="MyDataGrid_SelectionChanged"
                 GridLinesVisibility="All">
-
+        
             <DataGrid.Columns>
 
-                <DataGridTextColumn Header="Assembly Name" Binding="{Binding AssemblyName}" Width="160" IsReadOnly="True"/>
-                <DataGridTextColumn Header="REBAR TYPE" Binding="{Binding REBAR_TYPE}" Width="150" IsReadOnly="True"/>
+                <DataGridTextColumn Header="Assembly Name" Binding="{Binding AssemblyName}" Width="130" IsReadOnly="True"
+                                    HeaderStyle="{StaticResource ExcelFilterHeaderStyle}"
+                                    SortMemberPath="AssemblyName"/>
+                <DataGridTextColumn Header="Rebar Type" Binding="{Binding REBAR_TYPE}" Width="120" IsReadOnly="True"
+                                    HeaderStyle="{StaticResource ExcelFilterHeaderStyle}"
+                                    SortMemberPath="REBAR_TYPE"/>
 
-                <DataGridTextColumn Header="Element ID" Binding="{Binding ElementId}" Width="100" />
+                <DataGridTextColumn Header="Element ID" Binding="{Binding ElementId}" Width="100" IsReadOnly="True"
+                                    HeaderStyle="{StaticResource ExcelFilterHeaderStyle}"
+                                    SortMemberPath="ElementId"/>
 
-                <DataGridTemplateColumn Header="Shape" Width="220">
+                <DataGridTemplateColumn Header="Shape" Width="220"
+                                        HeaderStyle="{StaticResource ExcelFilterHeaderStyle}"
+                                        SortMemberPath="ShapeName">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <Image Source="{Binding ShapeImage}" 
@@ -121,17 +193,23 @@
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
 
-                <DataGridTextColumn Header="Parameter Name" Binding="{Binding ParameterName}" Width="120" IsReadOnly="True"/>
+                <DataGridTextColumn Header="Parameter Name" Binding="{Binding ParameterName}" Width="135" IsReadOnly="True"
+                                    HeaderStyle="{StaticResource ExcelFilterHeaderStyle}"
+                                    SortMemberPath="ParameterName"/>
 
                 <DataGridTextColumn Header="Value (mm)" 
                             Binding="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" 
-                            Width="120" 
-                            IsReadOnly="False"/>
+                            Width="110" 
+                            IsReadOnly="False"
+                            HeaderStyle="{StaticResource ExcelFilterHeaderStyle}"
+                            SortMemberPath="Value"/>
 
                 <DataGridTextColumn Header="Cover Status" 
                             Binding="{Binding CoverStatus}" 
-                            Width="100" 
-                            IsReadOnly="True">
+                            Width="120" 
+                            IsReadOnly="True"
+                            HeaderStyle="{StaticResource ExcelFilterHeaderStyle}"
+                            SortMemberPath="CoverStatus">
                     <DataGridTextColumn.ElementStyle>
                         <Style TargetType="TextBlock">
                             <Style.Triggers>

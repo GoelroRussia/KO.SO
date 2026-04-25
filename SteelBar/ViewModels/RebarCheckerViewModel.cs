@@ -3,10 +3,13 @@ using Autodesk.Revit.UI;
 using Nice3point.Revit.Extensions.Runtime;
 using Nice3point.Revit.Toolkit.External.Handlers;
 using Serilog;
+using SteelBar.Extensions;
 using SteelBar.Models;
 using SteelBar.Utils;
 using System.Collections;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows.Data;
 
@@ -14,6 +17,7 @@ namespace SteelBar.ViewModels;
 
 public partial class RebarCheckerViewModel : ObservableObject
 {
+    public Dictionary<string, List<ColumnFilterItem>> ColumnFilters { get; } = new();
     private readonly ActionEventHandler _actionEventHandler;
     private readonly UIDocument _uidoc;
     private readonly Document _doc;
@@ -43,7 +47,108 @@ public partial class RebarCheckerViewModel : ObservableObject
         _actionEventHandler = new ActionEventHandler();
         LoadInitialData();
     }
+    private void InitializeFullFiltersIfNeeded(string propertyName)
+    {
+        if (!ColumnFilters.ContainsKey(propertyName))
+        {
+            PropertyInfo? propInfo = typeof(RebarInfo).GetProperty(propertyName);
+            if (propInfo == null) return;
 
+            var allDistinctValues = RebarList
+                .Select(item => propInfo.GetValue(item)?.ToString() ?? "(Trống)")
+                .Distinct()
+                .OrderBy(v => v)
+                .ToList();
+
+            // Lưu toàn bộ vào bộ nhớ
+            ColumnFilters[propertyName] = allDistinctValues.Select(val => new ColumnFilterItem
+            {
+                Value = val,
+                IsSelected = true,
+                ColumnName = propertyName
+            }).ToList();
+        }
+    }
+    public List<ColumnFilterItem> GetOrCreateFilterItems(string propertyName)
+    {
+        // Nếu cột này chưa được lấy dữ liệu filter bao giờ
+        if (!ColumnFilters.ContainsKey(propertyName))
+        {
+            PropertyInfo? propInfo = typeof(RebarInfo).GetProperty(propertyName);
+            if (propInfo == null) return new List<ColumnFilterItem>();
+
+            // Lấy danh sách giá trị duy nhất từ RebarList
+            var distinctValues = RebarList
+                .Select(item => propInfo.GetValue(item)?.ToString() ?? "(Trống)")
+                .Distinct()
+                .OrderBy(v => v)
+                .ToList();
+
+            // Chuyển thành dạng Model để Bind lên UI (Mặc định chọn tất cả)
+            ColumnFilters[propertyName] = distinctValues.Select(val => new ColumnFilterItem
+            {
+                Value = val,
+                IsSelected = true,
+                ColumnName = propertyName
+            }).ToList();
+        }
+
+        return ColumnFilters[propertyName];
+    }
+    public List<ColumnFilterItem> GetVisibleFilterItems(string propertyName)
+    {
+        InitializeFullFiltersIfNeeded(propertyName);
+
+        // Bước A: Lọc Data gốc qua TẤT CẢ các cột KHÁC (bỏ qua cột đang mở popup)
+        var validItems = RebarList.Where(item =>
+        {
+            foreach (var filter in ColumnFilters)
+            {
+                if (filter.Key == propertyName) continue; // Bỏ qua cột hiện tại
+
+                // Nếu cột khác đang có bộ lọc (có ô bị bỏ tick)
+                if (filter.Value.Any(x => !x.IsSelected))
+                {
+                    var otherPropInfo = typeof(RebarInfo).GetProperty(filter.Key);
+                    var otherVal = otherPropInfo?.GetValue(item)?.ToString() ?? "(Trống)";
+
+                    var allowedValues = filter.Value.Where(x => x.IsSelected).Select(x => x.Value);
+
+                    // Nếu giá trị dòng này không nằm trong danh sách cho phép của cột khác -> Loại
+                    if (!allowedValues.Contains(otherVal)) return false;
+                }
+            }
+            return true;
+        });
+
+        // Bước B: Lấy ra các giá trị duy nhất từ tập dữ liệu hợp lệ ở trên
+        PropertyInfo? targetPropInfo = typeof(RebarInfo).GetProperty(propertyName);
+        var visibleValues = validItems
+            .Select(item => targetPropInfo?.GetValue(item)?.ToString() ?? "(Trống)")
+            .Distinct()
+            .ToHashSet();
+
+        // Bước C: Trả về tham chiếu của các CheckBox nằm trong danh sách visibleValues
+        return ColumnFilters[propertyName].Where(x => visibleValues.Contains(x.Value)).ToList();
+    }
+    public void ExecuteExcelFilter()
+    {
+        var activeFilters = new Dictionary<string, HashSet<string>>();
+
+        foreach (var kvp in ColumnFilters)
+        {
+            // Chỉ đưa vào bộ lọc khi có ít nhất 1 CheckBox bị bỏ chọn (Untick)
+            if (kvp.Value.Any(x => !x.IsSelected))
+            {
+                var selectedValues = kvp.Value.Where(x => x.IsSelected).Select(x => x.Value);
+                activeFilters[kvp.Key] = new HashSet<string>(selectedValues);
+            }
+        }
+
+        // Lấy View màng lọc của DataGrid hiện tại và gọi Extension
+        ICollectionView view = CollectionViewSource.GetDefaultView(RebarList);
+        view.ApplyExcelCheckboxFilter<RebarInfo>(activeFilters);
+    }
     /// <summary>
     /// Hàm này chạy lúc mở form để lấy danh sách Host Category hiển thị lên các ô CheckBox
     /// </summary>
@@ -136,7 +241,14 @@ public partial class RebarCheckerViewModel : ObservableObject
 
                     // Làm tròn theo thông số người dùng nhập (vd: chia 10, làm tròn, nhân 10)
                     double roundedValue = Math.Round(valMm / RoundingStep) * RoundingStep;
-
+                    // Đọc tên Shape của thanh thép
+                    string shapeNameStr = "None";
+                    var shapeId = rebar.GetShapeId();
+                    if (shapeId != ElementId.InvalidElementId)
+                    {
+                        var shapeElem = _doc.GetElement(shapeId);
+                        shapeNameStr = shapeElem?.Name ?? "None";
+                    }
                     // Nếu giá trị thực tế lệch với giá trị làm tròn (dung sai 0.001mm) -> Bắt lỗi
                     if (Math.Abs(valMm - roundedValue) > 0.01)
                     {
@@ -156,7 +268,8 @@ public partial class RebarCheckerViewModel : ObservableObject
                             Value = Math.Round(valMm, 2),
                             OriginalValue = Math.Round(valMm, 2),
                             //ShapeGeometry = GetRebarShapeGeometry(rebar)
-                            ShapeImage = SteelBar.Utils.RebarShapeGenerator.CreateRebarImage(rebar)
+                            ShapeImage = SteelBar.Utils.RebarShapeGenerator.CreateRebarImage(rebar),
+                            ShapeName = shapeNameStr
                         });
                     }
                 }

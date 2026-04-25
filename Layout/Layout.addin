@@ -1,0 +1,14 @@
+<RevitAddIns>
+    <AddIn Type="Application">
+        <Name>Layout</Name>
+        <Assembly>Layout\Layout.dll</Assembly>
+        <AddInId>C72D39F8-5280-4764-803F-4E7BE130E712</AddInId>
+        <FullClassName>Layout.Application</FullClassName>
+        <VendorId>Development</VendorId>
+        <VendorDescription></VendorDescription>
+    </AddIn>
+    <ManifestSettings>
+        <UseRevitContext>False</UseRevitContext>
+        <ContextName>Layout</ContextName>
+    </ManifestSettings>
+</RevitAddIns>

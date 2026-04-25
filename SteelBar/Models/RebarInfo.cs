@@ -17,6 +17,7 @@ public partial class RebarInfo : ObservableObject
     [ObservableProperty] private ImageSource? _shapeImage;
     [ObservableProperty] private bool _isCoverFailed;
     [ObservableProperty] private string _coverStatus = "Chưa kiểm tra";
+    [ObservableProperty] private string _shapeName = "None";
 }
 
 public partial class CategorySelection : ObservableObject

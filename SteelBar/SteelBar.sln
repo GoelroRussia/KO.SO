@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.14.36518.9 d17.14
+# Visual Studio Version 18
+VisualStudioVersion = 18.5.11709.299 stable
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SteelBar", "SteelBar.csproj", "{EBE2DEDF-C252-41B2-98E8-B8B50578CC2D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Layout", "..\Layout\Layout.csproj", "{2287CAB3-E22C-4031-B071-BC3E8F67D0C2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,26 @@ Global
 		{EBE2DEDF-C252-41B2-98E8-B8B50578CC2D}.Release.R25|Any CPU.Build.0 = Release.R25|Any CPU
 		{EBE2DEDF-C252-41B2-98E8-B8B50578CC2D}.Release.R26|Any CPU.ActiveCfg = Release.R26|Any CPU
 		{EBE2DEDF-C252-41B2-98E8-B8B50578CC2D}.Release.R26|Any CPU.Build.0 = Release.R26|Any CPU
+		{2287CAB3-E22C-4031-B071-BC3E8F67D0C2}.Debug.R22|Any CPU.ActiveCfg = Debug.R22|Any CPU
+		{2287CAB3-E22C-4031-B071-BC3E8F67D0C2}.Debug.R22|Any CPU.Build.0 = Debug.R22|Any CPU
+		{2287CAB3-E22C-4031-B071-BC3E8F67D0C2}.Debug.R23|Any CPU.ActiveCfg = Debug.R23|Any CPU
+		{2287CAB3-E22C-4031-B071-BC3E8F67D0C2}.Debug.R23|Any CPU.Build.0 = Debug.R23|Any CPU
+		{2287CAB3-E22C-4031-B071-BC3E8F67D0C2}.Debug.R24|Any CPU.ActiveCfg = Debug.R24|Any CPU
+		{2287CAB3-E22C-4031-B071-BC3E8F67D0C2}.Debug.R24|Any CPU.Build.0 = Debug.R24|Any CPU
+		{2287CAB3-E22C-4031-B071-BC3E8F67D0C2}.Debug.R25|Any CPU.ActiveCfg = Debug.R25|Any CPU
+		{2287CAB3-E22C-4031-B071-BC3E8F67D0C2}.Debug.R25|Any CPU.Build.0 = Debug.R25|Any CPU
+		{2287CAB3-E22C-4031-B071-BC3E8F67D0C2}.Debug.R26|Any CPU.ActiveCfg = Debug.R26|Any CPU
+		{2287CAB3-E22C-4031-B071-BC3E8F67D0C2}.Debug.R26|Any CPU.Build.0 = Debug.R26|Any CPU
+		{2287CAB3-E22C-4031-B071-BC3E8F67D0C2}.Release.R22|Any CPU.ActiveCfg = Release.R22|Any CPU
+		{2287CAB3-E22C-4031-B071-BC3E8F67D0C2}.Release.R22|Any CPU.Build.0 = Release.R22|Any CPU
+		{2287CAB3-E22C-4031-B071-BC3E8F67D0C2}.Release.R23|Any CPU.ActiveCfg = Release.R23|Any CPU
+		{2287CAB3-E22C-4031-B071-BC3E8F67D0C2}.Release.R23|Any CPU.Build.0 = Release.R23|Any CPU
+		{2287CAB3-E22C-4031-B071-BC3E8F67D0C2}.Release.R24|Any CPU.ActiveCfg = Release.R24|Any CPU
+		{2287CAB3-E22C-4031-B071-BC3E8F67D0C2}.Release.R24|Any CPU.Build.0 = Release.R24|Any CPU
+		{2287CAB3-E22C-4031-B071-BC3E8F67D0C2}.Release.R25|Any CPU.ActiveCfg = Release.R25|Any CPU
+		{2287CAB3-E22C-4031-B071-BC3E8F67D0C2}.Release.R25|Any CPU.Build.0 = Release.R25|Any CPU
+		{2287CAB3-E22C-4031-B071-BC3E8F67D0C2}.Release.R26|Any CPU.ActiveCfg = Release.R26|Any CPU
+		{2287CAB3-E22C-4031-B071-BC3E8F67D0C2}.Release.R26|Any CPU.Build.0 = Release.R26|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
