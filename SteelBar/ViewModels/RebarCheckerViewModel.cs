@@ -22,11 +22,8 @@ public partial class RebarCheckerViewModel : ObservableObject
     private readonly UIDocument _uidoc;
     private readonly Document _doc;
     private List<Rebar> _allRebars = new();
-    [DllImport("gdi32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
 
-
-    private static extern bool DeleteObject(IntPtr hObject);
     // --- CÁC THUỘC TÍNH BINDING VỚI GIAO DIỆN XAML ---
     [ObservableProperty] private double _roundingStep = 10.0;
     [ObservableProperty] private ObservableCollection<RebarInfo> _rebarList = new();
@@ -149,6 +146,7 @@ public partial class RebarCheckerViewModel : ObservableObject
         ICollectionView view = CollectionViewSource.GetDefaultView(RebarList);
         view.ApplyExcelCheckboxFilter<RebarInfo>(activeFilters);
     }
+
     /// <summary>
     /// Hàm này chạy lúc mở form để lấy danh sách Host Category hiển thị lên các ô CheckBox
     /// </summary>
@@ -555,5 +553,85 @@ public partial class RebarCheckerViewModel : ObservableObject
             // (Tùy chọn bổ sung) Phóng to/đưa view về các thanh thép vừa chọn để user dễ thấy
             uidoc.ShowElements(elementIds);
         });
+    }
+    [RelayCommand]
+    private async Task CheckConcreteCover()
+    {
+        // Kiểm tra xem DataGrid có dữ liệu thép chưa
+        if (RebarList == null || RebarList.Count == 0)
+        {
+            TaskDialog.Show("Thông báo", "Vui lòng 'Check' để hiển thị danh sách thép lẻ trước!");
+            return;
+        }
+
+        if (IsBusy) return;
+        IsBusy = true;
+
+        Log.Information("Bắt đầu chạy Cover Check cho {Count} thông số", RebarList.Count);
+
+        try
+        {
+            int totalRows = RebarList.Count;
+
+            // SỬ DỤNG HASHSET ĐỂ ĐẾM SỐ CÂY THÉP ĐỘC LẬP (Tránh đếm trùng lặp ElementId)
+            HashSet<long> uniqueTestedRebars = new HashSet<long>();
+            HashSet<long> uniqueFailedRebars = new HashSet<long>();
+
+            for (int i = 0; i < totalRows; i++)
+            {
+                var rebarInfo = RebarList[i];
+
+                // Cập nhật Progress Bar
+                if (i % 10 == 0 || i == totalRows - 1)
+                {
+                    ProgressValue = (i + 1) * 100.0 / totalRows;
+                    ProgressText = $"Đang quét lớp bảo vệ (Cover Check): {i + 1}/{totalRows}";
+                    await Task.Delay(1);
+                }
+
+                // Lưu ElementId vào tập hợp đã test (Nếu trùng ID, HashSet tự bỏ qua)
+                uniqueTestedRebars.Add(rebarInfo.ElementId);
+
+                // Lấy ra thanh thép gốc trong mô hình dựa vào ElementId
+#if REVIT2024_OR_GREATER
+                ElementId id = new ElementId((long)rebarInfo.ElementId);
+#else
+            ElementId id = new ElementId((int)rebarInfo.ElementId);
+#endif
+                if (_doc.GetElement(id) is Rebar rebar)
+                {
+                    double violationMm = RebarHelper.GetCoverViolationDistance(_doc, rebar);
+
+                    if (violationMm > 0.1)
+                    {
+                        rebarInfo.IsCoverFailed = true;
+                        rebarInfo.CoverStatus = $"Lẹm {Math.Round(violationMm, 1)} mm";
+
+                        // Thêm ElementId vào tập hợp bị lỗi
+                        uniqueFailedRebars.Add(rebarInfo.ElementId);
+                    }
+                    else
+                    {
+                        rebarInfo.IsCoverFailed = false;
+                        rebarInfo.CoverStatus = "Đạt (Passed)";
+                    }
+                }
+            }
+
+            ProgressText = "Hoàn tất kiểm tra!";
+
+            // BÁO CÁO KẾT QUẢ DỰA TRÊN SỐ CÂY THÉP ĐỘC LẬP
+            TaskDialog.Show("Cover Check",
+                $"Quét xong!\nPhát hiện {uniqueFailedRebars.Count} / {uniqueTestedRebars.Count} thanh thép vi phạm lớp bê tông bảo vệ.");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Lỗi bất ngờ xảy ra khi chạy Cover Check");
+            ProgressText = "Lỗi! Vui lòng xem file log.";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 }

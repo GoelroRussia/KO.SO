@@ -3,7 +3,7 @@
 		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 		xmlns:viewModels="clr-namespace:SteelBar.ViewModels"
 		xmlns:control="http://filterdatagrid.control.com/2021"
-		Title="Rebar Precision Checker Pro" Height="800" Width="1200"
+		Title="Kiểm tra thép" Height="800" Width="1200"
 		WindowStartupLocation="CenterScreen" Background="#F5F5F5">
     <Window.Resources>
         <Style x:Key="CenterText" TargetType="TextBlock">
@@ -69,6 +69,19 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style x:Key="ExportButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="80"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="Margin" Value="10,0,0,0"/>
+            <Style.Resources>
+                <Style TargetType="Border">
+                    <Setter Property="CornerRadius" Value="4"/>
+                </Style>
+            </Style.Resources>
+        </Style>
     </Window.Resources>
 
 
@@ -100,41 +113,35 @@
             <TextBox Text="{Binding RoundingStep}" Width="70" Height="30" VerticalContentAlignment="Center"/>
 
 
-            <Button Content="CHECK" 
-					Width="70" Height="30"
-					Command="{Binding CheckRebarsCommand}" 
-					Padding="15,5" Margin="10,0" Background="#2196F3" Foreground="White" FontWeight="Bold" Cursor="Hand"/>
-
-            <Button Content="AUTO ROUNDING" 
+            <Button Content="Check"
+					Command="{Binding CheckRebarsCommand}"
+                    Style="{StaticResource ExportButtonStyle}">
+            </Button>
+            <Button Content="Auto Rounding" Width="100"
 					Command="{Binding AutoRoundRebarsCommand}" 
 					CommandParameter="{Binding Items, ElementName=RebarDataGrid}" 
-					Width="120" Height="30" Padding="5" Margin="0,0,10,0" Cursor="Hand" 
-					Background="#FF9800" Foreground="White" FontWeight="Bold" BorderThickness="0"
-					ToolTip="Đề xuất số làm tròn cho các thanh thép ĐANG HIỂN THỊ trên bảng"/>
-
-            <Button Content="UPDATE" Command="{Binding ApplyChangesCommand}" 
-					Width="70" Height="30" Padding="5" Cursor="Hand" 
-					Background="#2196F3" Foreground="White" FontWeight="Bold" BorderThickness="0"/>
-
-            <Button Content="ZOOM IN" 
+                    Style="{StaticResource ExportButtonStyle}">
+            </Button>
+            <Button Content="Update" 
+                    Command="{Binding ApplyChangesCommand}" 
+					Style="{StaticResource ExportButtonStyle}">
+            </Button>
+            <Button Content="Zoom In" 
 					Command="{Binding ZoomInCommand}"
-					Width="70" Height="30" Margin="10,0,10,0" 
-					Background="#2196F3" Foreground="White"/>
+					Style="{StaticResource ExportButtonStyle}">
+            </Button>
 
-            <Button Content="SELECT" 
+            <Button Content="Select" 
 					Command="{Binding SelectElementsCommand}" 
-					Width="70" Height="30" Margin="0,0,10,0" 
-					Background="#2196F3" Foreground="White"/>
-
-            <Button Content="COVER CHECK" 
+					Style="{StaticResource ExportButtonStyle}"/>
+            <Button Content="Cover Check" 
 					Command="{Binding CheckConcreteCoverCommand}"
-					Width="90" Height="30"
-					Margin="5" Background="#2196F3" Foreground="White"/>
+					Style="{StaticResource ExportButtonStyle}"/>
 
         </StackPanel>
 
 
-        <GroupBox Grid.Row="1" Grid.Column="0" Header="Lọc theo cấu kiện chứa thép" Margin="0,0,10,0" Padding="5">
+        <GroupBox Grid.Row="1" Grid.Column="0" Header="Chọn cấu kiện host thép" Margin="0,0,10,0" FontSize="13" Padding="5">
 
             <ScrollViewer VerticalScrollBarVisibility="Auto">
 
@@ -162,10 +169,9 @@
                 ItemsSource="{Binding RebarList}" 
                 SelectionMode="Extended"
                 AutoGenerateColumns="False" 
-                HeadersVisibility="Column"
+                HeadersVisibility="All"
                 SelectionChanged="MyDataGrid_SelectionChanged"
                 GridLinesVisibility="All">
-        
             <DataGrid.Columns>
 
                 <DataGridTextColumn Header="Assembly Name" Binding="{Binding AssemblyName}" Width="130" IsReadOnly="True"
@@ -241,11 +247,11 @@
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" >
 
-                <TextBlock Text="Tổng thép lỗi: " Foreground="#444"/>
+                <TextBlock Text="Tổng thép lỗi: "/>
 
                 <TextBlock Text="{Binding TotalRebars}" FontWeight="Bold" Foreground="Red" Margin="0,0,20,0"/>
 
-                <TextBlock Text="Số Assembly lỗi: " Foreground="#444"/>
+                <TextBlock Text="Số Assembly lỗi: " />
 
                 <TextBlock Text="{Binding TotalAssemblies}" FontWeight="Bold" Foreground="#2196F3"/>
 

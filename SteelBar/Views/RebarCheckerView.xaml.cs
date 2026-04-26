@@ -20,6 +20,7 @@ public partial class RebarCheckerView : Window
         InitializeComponent();
         DataContext = viewModel; // Gắn data để XAML hiểu
     }
+
     private void MyDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (sender is DataGrid dataGrid)
@@ -28,6 +29,7 @@ public partial class RebarCheckerView : Window
             _viewModel.SelectedRebar = dataGrid.SelectedItems;
         }
     }
+
     // Khi người dùng bấm mở Popup
     private void FilterBtn_Checked(object sender, RoutedEventArgs e)
     {
